@@ -178,12 +178,45 @@ class GetItemStatuses extends \VuFind\AjaxHandler\GetItemStatuses implements Tra
         $mediatype = str_replace(array(' ', '+'),array('',''), $mediatype);
         $checks = 'RecordView';
         if ($list) $checks = 'ResultList';
-        if (!empty($this->config[$this->source.$checks.'-'.$mediatype])) {
-            $this->checks = $this->config[$this->source.$checks.'-'.$mediatype];
-            $this->checkRoute = $this->source.$checks.'-'.$mediatype;
-        } else if (!empty($this->config[$checks.'-'.$mediatype])) {
-            $this->checks = $this->config[$checks.'-'.$mediatype];
-            $this->checkRoute = $checks.'-'.$mediatype;
+
+        $configKeys = array_keys($this->config);
+        $format = $formatWithSource = '';
+        $formatNoSource = [];
+
+        // go through all "check groups" e.g. [SolrResultList]
+        foreach ($configKeys as $configKey) {
+            if (str_contains($configKey, $checks)) {
+                $formats = [];
+                $splittedKeys = explode('-', $configKey);
+
+                // something after "-" exsists e.g. SolrResultList-Book
+                if (!empty($splittedKeys[1])) {
+                    $formats = explode('|', $splittedKeys[1]);
+                } 
+
+                if (!empty($formats) && in_array($mediatype, $formats)) {
+                    if (str_starts_with($splittedKeys[0], $this->source)) {
+                        $formatWithSource = $splittedKeys[1];
+                        break;
+                    } else if (str_starts_with($splittedKeys[0], $checks)) {
+                        array_push($formatNoSource, $splittedKeys[1]);
+                    }
+                }
+            }
+        }
+
+        if (!empty($formatWithSource)) {
+            $format = $formatWithSource;
+        } else if (!empty($formatNoSource)) {
+            $format = $formatNoSource[0];
+        }
+
+        if (!empty($this->config[$this->source.$checks.'-'.$format])) {
+            $this->checks = $this->config[$this->source.$checks.'-'.$format];
+            $this->checkRoute = $this->source.$checks.'-'.$format;
+        } else if (!empty($this->config[$checks.'-'.$format])) {
+            $this->checks = $this->config[$checks.'-'.$format];
+            $this->checkRoute = $checks.'-'.$format;
         } else if (!empty($this->config[$this->source.$checks])) {
             $this->checks = $this->config[$this->source.$checks];
             $this->checkRoute =$this->source.$checks;
