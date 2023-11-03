@@ -28,8 +28,14 @@ class DriverWithHttpClientFactory extends \VuFind\Resolver\Driver\DriverWithHttp
         $splittedResolverPath = explode('\\', $resolverPath);
         $resolverName = $splittedResolverPath[count($splittedResolverPath) - 1];
 
+        if (!($resolverName == 'DAIA' && empty($config['ResolverBaseURL'][$resolverName]))) {
+            $resolverUrl = $config['ResolverBaseURL'][$resolverName];
+        } else {
+            $resolverUrl = $container->get('VuFind\Config\PluginManager')->get('DAIA')['DAIA']['baseUrl'];
+        }
+
         return new $requestedName(
-            $config['ResolverBaseURL'][$resolverName],
+            $resolverUrl,
             $container->get('VuFindHttp\HttpService')->createClient(),
             $config['ResolverExtraParams'][$resolverName],
             'availabilityplus-resolver-'.$resolverName.'.yaml',
