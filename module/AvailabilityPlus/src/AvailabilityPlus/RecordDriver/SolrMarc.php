@@ -226,8 +226,8 @@ class SolrMarc extends \VuFind\RecordDriver\SolrMarc
                     foreach ($subFieldSpecs['parent'] as $subFieldSpec) {
                         if ($subFieldSpec[0] == 'method') {
                             $method = $subFieldSpec[1];
-                            if (is_callable('parent::' . $method)) {
-                                $indexValues = call_user_func([$this, 'parent::' . $method]);
+                            if (is_callable([$this, $method])) {
+                                $indexValues = call_user_func([$this, $method]);
                                 if (is_array($indexValues)) {
                                     foreach ($indexValues as $indexKey => $value) {
                                         $tmpData[$indexKey] = ['data'=> [$value]];
